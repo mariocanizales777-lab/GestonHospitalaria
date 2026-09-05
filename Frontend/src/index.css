@@ -1,0 +1,69 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f7f8fa;
+  color: #1f2430;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 14px 32px;
+  border-bottom: 1px solid #eaecef;
+}
+
+.navbar h2 span { color: #2f6fed; font-weight: 500; }
+
+.tabs { display: flex; gap: 8px; }
+
+.tabs button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.tabs button.active { background: #eaf1ff; color: #2f6fed; font-weight: 600; }
+
+.user-badge { font-size: 13px; color: #4b5563; }
+
+.container { max-width: 800px; margin: 32px auto; padding: 0 20px; }
+
+.token-setup { display: flex; gap: 8px; margin: 16px 0; max-width: 500px; }
+.token-setup input { flex: 1; padding: 8px 10px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.token-setup button { padding: 8px 14px; border: none; border-radius: 6px; background: #2f6fed; color: #fff; cursor: pointer; }
+
+.legend { display: flex; gap: 16px; margin: 16px 0; font-size: 13px; }
+.badge { display: flex; align-items: center; gap: 6px; color: #4b5563; }
+.badge::before { content: ''; width: 10px; height: 10px; border-radius: 50%; }
+.badge.disponible::before { background: #22c55e; }
+.badge.expira::before { background: #f5a623; }
+.badge.ocupado::before { background: #9aa1ab; }
+
+.slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.slot { border: 1px solid #d5e8d4; border-radius: 8px; padding: 12px; text-align: left; background: #eafaf0; cursor: pointer; font-size: 14px; }
+.slot strong { display: block; }
+.slot span { font-size: 12px; color: #16a34a; }
+.slot.ocupado { background: #f1f2f4; border-color: #e2e4e8; cursor: not-allowed; }
+.slot.ocupado span { color: #8a8f98; }
+.slot.expira { background: #fff7e6; border-color: #f5d999; }
+.slot.expira span { color: #b7791f; }
+
+.panel { background: #fff; border: 1px solid #eaecef; border-radius: 12px; padding: 24px; max-width: 700px; }
+.citas-list { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 12px; }
+.cita-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid #eaecef; border-radius: 10px; }
+.cita-info strong { display: block; font-size: 14px; }
+.cita-info span { font-size: 13px; color: #8a8f98; }
+.cita-item.cancelada { opacity: 0.5; }
+.cita-actions { display: flex; gap: 8px; }
+.btn-cancelar, .btn-modificar { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
+.btn-cancelar { background: #fff; border-color: #e53935; color: #e53935; }
+.btn-modificar { background: #2f6fed; color: #fff; }
+.btn-modificar[disabled] { background: #a9c1f5; cursor: not-allowed; }
