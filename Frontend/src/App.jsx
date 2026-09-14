@@ -25,7 +25,7 @@ export default function App() {
             Mis citas
           </button>
         </nav>
-        <div className="user-badge">Mario Canizales (Paciente Premium)</div>
+        <div className="user-badge">Paciente (Premium)</div>
       </header>
 
       <main className="container">
