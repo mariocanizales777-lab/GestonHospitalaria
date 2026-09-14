@@ -4,6 +4,7 @@ const citaSchema = new mongoose.Schema(
   {
     paciente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
     horario: { type: mongoose.Schema.Types.ObjectId, ref: 'Horario', required: true },
+    motivo: { type: String, required: true },
     estado: {
       type: String,
       enum: ['reservada', 'cancelada'],

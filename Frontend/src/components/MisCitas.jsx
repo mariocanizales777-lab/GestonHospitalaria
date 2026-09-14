@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { API_URL, getToken } from '../api';
-import TokenSetup from './TokenSetup';
 
 function formatearFecha(cita) {
+  if (!cita.horario) return 'Horario no disponible';
   const fecha = new Date(cita.horario.fecha).toLocaleDateString('es-MX', {
     weekday: 'long',
     day: 'numeric',
@@ -23,7 +23,7 @@ export default function MisCitas() {
     });
 
     if (!res.ok) {
-      alert('No se pudieron cargar tus citas. Revisa el token.');
+      alert('No se pudieron cargar tus citas.');
       return;
     }
     setCitas(await res.json());
@@ -48,25 +48,21 @@ export default function MisCitas() {
     }
   }
 
+  const citasActivas = citas.filter((c) => c.estado !== 'cancelada');
+
   return (
     <section className="panel">
-      <TokenSetup onGuardar={cargarMisCitas} />
-
       <h2>Mis citas agendadas</h2>
       <ul className="citas-list">
-        {citas.length === 0 && <li>No tienes citas agendadas.</li>}
-        {citas.map((cita) => (
-          <li key={cita._id} className={`cita-item ${cita.estado === 'cancelada' ? 'cancelada' : ''}`}>
+        {citasActivas.length === 0 && <li>No tienes citas agendadas.</li>}
+        {citasActivas.map((cita) => (
+          <li key={cita._id} className="cita-item">
             <div className="cita-info">
               <strong>{formatearFecha(cita)}</strong>
-              <span>{cita.horario.sucursal} · {cita.estado}</span>
+              <span>{cita.horario?.sucursal ?? '—'} · {cita.motivo} · {cita.estado}</span>
             </div>
             <div className="cita-actions">
-              <button
-                className="btn-cancelar"
-                disabled={cita.estado === 'cancelada'}
-                onClick={() => cancelarCita(cita._id)}
-              >
+              <button className="btn-cancelar" onClick={() => cancelarCita(cita._id)}>
                 Cancelar
               </button>
               <button className="btn-modificar" disabled title="Próximamente">

@@ -2,8 +2,12 @@ const Cita = require('../models/Cita');
 const Horario = require('../models/Horario');
 
 async function reservarCita(req, res) {
-  const { horarioId } = req.body;
+  const { horarioId, motivo } = req.body;
   const paciente = req.usuario.id;
+
+  if (!motivo || !motivo.trim()) {
+    return res.status(400).json({ mensaje: 'El motivo de la consulta es obligatorio' });
+  }
 
   const horario = await Horario.findById(horarioId);
   if (!horario) return res.status(404).json({ mensaje: 'Horario no encontrado' });
@@ -11,7 +15,7 @@ async function reservarCita(req, res) {
   horario.estado = 'ocupado';
   await horario.save();
 
-  const cita = await Cita.create({ paciente, horario: horario._id, estado: 'reservada' });
+  const cita = await Cita.create({ paciente, horario: horario._id, motivo, estado: 'reservada' });
   res.status(201).json(cita);
 }
 

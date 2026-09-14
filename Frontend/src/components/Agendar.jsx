@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { API_URL, getToken } from '../api';
-import TokenSetup from './TokenSetup';
 
 export default function Agendar() {
   const [horarios, setHorarios] = useState([]);
+  const [motivo, setMotivo] = useState('');
 
   async function cargarHorarios() {
     const res = await fetch(`${API_URL}/horarios`);
@@ -20,8 +20,8 @@ export default function Agendar() {
 
   async function reservarCita(horarioId) {
     const token = getToken();
-    if (!token) {
-      alert('Pega tu token arriba y da clic en "Guardar token" antes de reservar.');
+    if (!motivo.trim()) {
+      alert('Escribe el motivo de la consulta antes de reservar.');
       return;
     }
 
@@ -31,11 +31,12 @@ export default function Agendar() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ horarioId }),
+      body: JSON.stringify({ horarioId, motivo }),
     });
 
     if (res.ok) {
       alert('Cita reservada con éxito.');
+      setMotivo('');
       cargarHorarios();
     } else {
       const data = await res.json();
@@ -48,7 +49,16 @@ export default function Agendar() {
       <h1>Agendar nueva cita médica</h1>
       <p>Seleccione una de las horas disponibles para confirmar su asistencia.</p>
 
-      <TokenSetup onGuardar={cargarHorarios} />
+      <div className="motivo-field">
+        <label htmlFor="motivo">Motivo de la consulta:</label>
+        <input
+          id="motivo"
+          type="text"
+          placeholder="Ej. Dolor de cabeza persistente"
+          value={motivo}
+          onChange={(e) => setMotivo(e.target.value)}
+        />
+      </div>
 
       <h3>Horarios Disponibles</h3>
       <div className="legend">

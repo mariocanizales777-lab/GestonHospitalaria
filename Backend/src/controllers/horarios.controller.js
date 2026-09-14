@@ -2,7 +2,7 @@ const Horario = require('../models/Horario');
 
 async function getHorarios(req, res) {
   const { sucursal, fecha } = req.query;
-  const filtro = { estado: 'disponible' };
+  const filtro = {};
   if (sucursal) filtro.sucursal = sucursal;
   if (fecha) filtro.fecha = new Date(fecha);
   const horarios = await Horario.find(filtro).sort({ hora: 1 });

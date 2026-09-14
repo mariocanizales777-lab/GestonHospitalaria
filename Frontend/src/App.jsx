@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { asegurarToken } from './api';
 import Agendar from './components/Agendar';
 import MisCitas from './components/MisCitas';
 
 export default function App() {
   const [vista, setVista] = useState('agendar');
+  const [listo, setListo] = useState(false);
+
+  useEffect(() => {
+    asegurarToken().then(() => setListo(true));
+  }, []);
+
+  if (!listo) return <p style={{ padding: 32 }}>Cargando…</p>;
 
   return (
     <div className="app">
@@ -17,7 +25,7 @@ export default function App() {
             Mis citas
           </button>
         </nav>
-        <div className="user-badge">Laura Martínez (Paciente Premium)</div>
+        <div className="user-badge">Mario Canizales (Paciente Premium)</div>
       </header>
 
       <main className="container">

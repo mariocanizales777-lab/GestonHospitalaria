@@ -40,6 +40,10 @@ body {
 .token-setup input { flex: 1; padding: 8px 10px; border: 1px solid #dcdfe4; border-radius: 6px; }
 .token-setup button { padding: 8px 14px; border: none; border-radius: 6px; background: #2f6fed; color: #fff; cursor: pointer; }
 
+.motivo-field { margin: 12px 0; max-width: 500px; }
+.motivo-field label { display: block; font-size: 13px; margin-bottom: 4px; color: #4b5563; }
+.motivo-field input { width: 100%; padding: 8px 10px; border: 1px solid #dcdfe4; border-radius: 6px; }
+
 .legend { display: flex; gap: 16px; margin: 16px 0; font-size: 13px; }
 .badge { display: flex; align-items: center; gap: 6px; color: #4b5563; }
 .badge::before { content: ''; width: 10px; height: 10px; border-radius: 50%; }
