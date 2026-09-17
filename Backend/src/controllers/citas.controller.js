@@ -12,6 +12,10 @@ async function reservarCita(req, res) {
   const horario = await Horario.findById(horarioId);
   if (!horario) return res.status(404).json({ mensaje: 'Horario no encontrado' });
 
+  if (horario.estado !== 'disponible') {
+    return res.status(409).json({ mensaje: 'Ese horario ya no está disponible' });
+  }
+
   horario.estado = 'ocupado';
   await horario.save();
 
@@ -22,6 +26,23 @@ async function reservarCita(req, res) {
 async function getMisCitas(req, res) {
   const citas = await Cita.find({ paciente: req.usuario.id }).populate('horario');
   res.json(citas);
+}
+
+async function actualizarCita(req, res) {
+  const { motivo } = req.body;
+  if (!motivo || !motivo.trim()) {
+    return res.status(400).json({ mensaje: 'El motivo no puede quedar vacío' });
+  }
+
+  const cita = await Cita.findById(req.params.id);
+  if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
+  if (cita.estado === 'cancelada') {
+    return res.status(400).json({ mensaje: 'No se puede modificar una cita cancelada' });
+  }
+
+  cita.motivo = motivo;
+  await cita.save();
+  res.json(cita);
 }
 
 async function cancelarCita(req, res) {
@@ -35,4 +56,4 @@ async function cancelarCita(req, res) {
   res.json(cita);
 }
 
-module.exports = { reservarCita, getMisCitas, cancelarCita };
+module.exports = { reservarCita, getMisCitas, actualizarCita, cancelarCita };

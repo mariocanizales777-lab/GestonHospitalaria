@@ -7,6 +7,7 @@ function formatearFecha(cita) {
     weekday: 'long',
     day: 'numeric',
     month: 'short',
+    timeZone: 'UTC',
   });
   return `${fecha} — ${cita.horario.hora}`;
 }
@@ -48,6 +49,27 @@ export default function MisCitas() {
     }
   }
 
+  async function modificarCita(cita) {
+    const nuevoMotivo = prompt('Nuevo motivo de la consulta:', cita.motivo);
+    if (nuevoMotivo === null || !nuevoMotivo.trim()) return;
+
+    const res = await fetch(`${API_URL}/citas/${cita._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ motivo: nuevoMotivo }),
+    });
+
+    if (res.ok) {
+      cargarMisCitas();
+    } else {
+      const data = await res.json();
+      alert(data.mensaje || 'No se pudo modificar la cita.');
+    }
+  }
+
   const citasActivas = citas.filter((c) => c.estado !== 'cancelada');
 
   return (
@@ -65,7 +87,7 @@ export default function MisCitas() {
               <button className="btn-cancelar" onClick={() => cancelarCita(cita._id)}>
                 Cancelar
               </button>
-              <button className="btn-modificar" disabled title="Próximamente">
+              <button className="btn-modificar" onClick={() => modificarCita(cita)}>
                 Modificar
               </button>
             </div>

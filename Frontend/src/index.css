@@ -71,3 +71,28 @@ body {
 .btn-cancelar { background: #fff; border-color: #e53935; color: #e53935; }
 .btn-modificar { background: #2f6fed; color: #fff; }
 .btn-modificar[disabled] { background: #a9c1f5; cursor: not-allowed; }
+
+.horario-form { display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin-top: 12px; }
+.horario-form label { display: flex; flex-direction: column; font-size: 13px; color: #4b5563; gap: 4px; }
+.horario-form input, .horario-form select { padding: 8px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.horario-form button { padding: 8px 14px; border: none; border-radius: 6px; background: #2f6fed; color: #fff; cursor: pointer; }
+.mensaje-horario { margin-top: 12px; font-size: 14px; color: #16a34a; }
+
+
+.nota-receta { font-size: 13px; color: #8a8f98; margin: 8px 0 16px; }
+.medicamentos-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.medicamento-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid #eaecef; border-radius: 10px; gap: 12px; flex-wrap: wrap; }
+.medicamento-item strong { display: block; font-size: 14px; }
+.med-categoria { font-size: 12px; color: #8a8f98; }
+.med-precio { font-weight: 600; }
+.med-etiquetas { display: flex; gap: 6px; }
+.med-estado { font-size: 12px; padding: 4px 10px; border-radius: 12px; white-space: nowrap; }
+.med-estado.disponible { background: #eafaf0; color: #16a34a; }
+.med-estado.agotado { background: #f1f2f4; color: #8a8f98; }
+.med-receta { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #fff7e6; color: #b7791f; white-space: nowrap; }
+
+.dias-selector { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+.dia-btn { display: flex; flex-direction: column; align-items: center; padding: 10px 14px; border: 1px solid #dcdfe4; border-radius: 8px; background: #fff; cursor: pointer; }
+.dia-btn.activo { border-color: #2f6fed; background: #eaf1ff; color: #2f6fed; }
+.dia-nombre { font-size: 12px; text-transform: capitalize; }
+.dia-numero { font-size: 16px; font-weight: 600; }
