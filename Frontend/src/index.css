@@ -1,5 +1,19 @@
 * { box-sizing: border-box; }
 
+.toast-stack { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; max-width: 360px; }
+.toast { padding: 12px 16px; border-radius: 8px; font-size: 14px; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; animation: toast-in 0.15s ease-out; }
+.toast-exito { background: #16a34a; }
+.toast-error { background: #e53935; }
+.toast-info { background: #2f6fed; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.confirm-overlay { position: fixed; inset: 0; background: rgba(15, 18, 25, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1001; }
+.confirm-box { background: #fff; border-radius: 10px; padding: 24px; max-width: 360px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.confirm-box p { margin: 0 0 20px; font-size: 14px; color: #1f2430; }
+.confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+.campo-ayuda { display: block; font-size: 12px; color: #b7791f; margin-top: 4px; }
+
 body {
   margin: 0;
   font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -32,7 +46,9 @@ body {
 
 .tabs button.active { background: #eaf1ff; color: #2f6fed; font-weight: 600; }
 
-.user-badge { font-size: 13px; color: #4b5563; }
+.user-badge { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #4b5563; }
+.user-nombre { font-weight: 600; }
+.user-badge select { padding: 6px 10px; border: 1px solid #dcdfe4; border-radius: 6px; font-size: 13px; background: #fff; cursor: pointer; }
 
 .container { max-width: 800px; margin: 32px auto; padding: 0 20px; }
 
@@ -62,15 +78,32 @@ body {
 
 .panel { background: #fff; border: 1px solid #eaecef; border-radius: 12px; padding: 24px; max-width: 700px; }
 .citas-list { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 12px; }
-.cita-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid #eaecef; border-radius: 10px; }
+.cita-item-wrapper { border: 1px solid #eaecef; border-radius: 10px; overflow: hidden; }
+.cita-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; }
 .cita-info strong { display: block; font-size: 14px; }
 .cita-info span { font-size: 13px; color: #8a8f98; }
 .cita-item.cancelada { opacity: 0.5; }
 .cita-actions { display: flex; gap: 8px; }
-.btn-cancelar, .btn-modificar { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
+.btn-cancelar, .btn-modificar, .btn-receta { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
 .btn-cancelar { background: #fff; border-color: #e53935; color: #e53935; }
 .btn-modificar { background: #2f6fed; color: #fff; }
 .btn-modificar[disabled] { background: #a9c1f5; cursor: not-allowed; }
+.btn-receta { background: #fff; border-color: #16a34a; color: #16a34a; }
+
+.receta-panel { padding: 14px 16px; border-top: 1px solid #eaecef; background: #fafbfc; }
+.receta-panel h4 { margin: 0 0 8px; font-size: 13px; color: #4b5563; }
+.recetas-list { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.receta-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.receta-form select { flex: 1; min-width: 220px; padding: 8px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.receta-form input[type="number"] { width: 80px; padding: 8px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.receta-form button { padding: 8px 14px; border: none; border-radius: 6px; background: #2f6fed; color: #fff; cursor: pointer; }
+.receta-form button[disabled] { background: #a9c1f5; cursor: not-allowed; }
+.mensaje-error-receta { margin-top: 10px; font-size: 13px; color: #e53935; }
+
+.apartar-form { display: flex; gap: 6px; align-items: center; width: 100%; margin-top: 8px; }
+.apartar-form input[type="number"] { width: 70px; padding: 6px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.apartar-form button { padding: 6px 14px; border: none; border-radius: 6px; background: #2f6fed; color: #fff; cursor: pointer; font-size: 13px; }
+.apartar-form button[disabled] { background: #a9c1f5; cursor: not-allowed; }
 
 .horario-form { display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin-top: 12px; }
 .horario-form label { display: flex; flex-direction: column; font-size: 13px; color: #4b5563; gap: 4px; }

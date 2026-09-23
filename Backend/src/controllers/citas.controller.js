@@ -2,6 +2,10 @@ const Cita = require('../models/Cita');
 const Horario = require('../models/Horario');
 
 async function reservarCita(req, res) {
+  if (req.usuario.rol !== 'paciente') {
+    return res.status(403).json({ mensaje: 'Solo un paciente puede reservar una cita' });
+  }
+
   const { horarioId, motivo } = req.body;
   const paciente = req.usuario.id;
 
@@ -28,6 +32,22 @@ async function getMisCitas(req, res) {
   res.json(citas);
 }
 
+// Agenda del doctor autenticado: todas las citas activas sobre SUS horarios.
+async function getCitasDelDoctor(req, res) {
+  if (req.usuario.rol !== 'doctor') {
+    return res.status(403).json({ mensaje: 'Solo un doctor puede ver su agenda' });
+  }
+
+  const horariosPropios = await Horario.find({ medico: req.usuario.id }).select('_id');
+  const idsHorarios = horariosPropios.map((h) => h._id);
+
+  const citas = await Cita.find({ horario: { $in: idsHorarios }, estado: { $ne: 'cancelada' } })
+    .populate('horario')
+    .sort({ createdAt: -1 });
+
+  res.json(citas);
+}
+
 async function actualizarCita(req, res) {
   const { motivo } = req.body;
   if (!motivo || !motivo.trim()) {
@@ -36,6 +56,9 @@ async function actualizarCita(req, res) {
 
   const cita = await Cita.findById(req.params.id);
   if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
+  if (cita.paciente.toString() !== req.usuario.id) {
+    return res.status(403).json({ mensaje: 'No puedes modificar una cita que no es tuya' });
+  }
   if (cita.estado === 'cancelada') {
     return res.status(400).json({ mensaje: 'No se puede modificar una cita cancelada' });
   }
@@ -48,6 +71,9 @@ async function actualizarCita(req, res) {
 async function cancelarCita(req, res) {
   const cita = await Cita.findById(req.params.id);
   if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
+  if (cita.paciente.toString() !== req.usuario.id) {
+    return res.status(403).json({ mensaje: 'No puedes cancelar una cita que no es tuya' });
+  }
 
   cita.estado = 'cancelada';
   await cita.save();
@@ -56,4 +82,4 @@ async function cancelarCita(req, res) {
   res.json(cita);
 }
 
-module.exports = { reservarCita, getMisCitas, actualizarCita, cancelarCita };
+module.exports = { reservarCita, getMisCitas, getCitasDelDoctor, actualizarCita, cancelarCita };
