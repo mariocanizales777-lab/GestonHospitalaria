@@ -20,121 +20,152 @@ export default function MisCitas() {
 
   const [citas, setCitas] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [recetasPorCita, setRecetasPorCita] = useState({});
+  const [editandoId, setEditandoId] = useState(null);
+  const [motivoEditado, setMotivoEditado] = useState('');
+  const [guardando, setGuardando] = useState(false);
   const [citaAbierta, setCitaAbierta] = useState(null);
+  const [recetasPorCita, setRecetasPorCita] = useState({});
 
-  async function cargarMisCitas() {
+  async function cargarCitas() {
     setCargando(true);
     const res = await fetchAutenticado('/citas/mias');
-
-    if (!res.ok) {
+    if (res.ok) {
+      setCitas(await res.json());
+    } else {
       toast.error('No se pudieron cargar tus citas.');
-      setCargando(false);
-      return;
     }
-    setCitas(await res.json());
     setCargando(false);
   }
 
-  async function cargarRecetas(citaId) {
-    const res = await fetchAutenticado(`/citas/${citaId}/recetas`);
-    if (res.ok) {
-      const data = await res.json();
-      setRecetasPorCita((prev) => ({ ...prev, [citaId]: data }));
-    }
-  }
-
   useEffect(() => {
-    cargarMisCitas();
+    cargarCitas();
   }, []);
 
-  async function cancelarCita(id) {
-    const confirmado = await pedirConfirmacion('¿Seguro que quieres cancelar esta cita?');
-    if (!confirmado) return;
-
-    const res = await fetchAutenticado(`/citas/${id}/cancelar`, { method: 'PUT' });
-
-    if (res.ok) {
-      toast.exito('Cita cancelada.');
-      cargarMisCitas();
-    } else {
-      toast.error('No se pudo cancelar la cita.');
-    }
+  function iniciarEdicion(cita) {
+    setEditandoId(cita._id);
+    setMotivoEditado(cita.motivo || '');
   }
 
-  async function modificarCita(cita) {
-    const nuevoMotivo = prompt('Nuevo motivo de la consulta:', cita.motivo);
-    if (nuevoMotivo === null || !nuevoMotivo.trim()) return;
+  function cancelarEdicion() {
+    setEditandoId(null);
+    setMotivoEditado('');
+  }
 
-    const res = await fetchAutenticado(`/citas/${cita._id}`, {
+  async function guardarMotivo(citaId) {
+    if (!motivoEditado.trim()) {
+      toast.error('El motivo no puede estar vacío.');
+      return;
+    }
+    setGuardando(true);
+    const res = await fetchAutenticado(`/citas/${citaId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ motivo: nuevoMotivo }),
+      body: JSON.stringify({ motivo: motivoEditado.trim() }),
     });
-
+    const data = await res.json();
+    setGuardando(false);
     if (res.ok) {
       toast.exito('Motivo actualizado.');
-      cargarMisCitas();
+      setEditandoId(null);
+      cargarCitas();
     } else {
-      const data = await res.json();
-      toast.error(data.mensaje || 'No se pudo modificar la cita.');
+      toast.error(data.mensaje || 'No se pudo actualizar el motivo.');
     }
   }
 
-  function toggleRecetas(citaId) {
+  async function cancelarCita(citaId) {
+    const confirmado = await pedirConfirmacion('¿Cancelar esta cita? Esta acción no se puede deshacer.');
+    if (!confirmado) return;
+
+    const res = await fetchAutenticado(`/citas/${citaId}/cancelar`, { method: 'PUT' });
+    const data = await res.json();
+    if (res.ok) {
+      toast.exito('Cita cancelada.');
+      cargarCitas();
+    } else {
+      toast.error(data.mensaje || 'No se pudo cancelar la cita.');
+    }
+  }
+
+  async function toggleRecetas(citaId) {
     if (citaAbierta === citaId) {
       setCitaAbierta(null);
       return;
     }
     setCitaAbierta(citaId);
-    if (!recetasPorCita[citaId]) cargarRecetas(citaId);
+    if (!recetasPorCita[citaId]) {
+      const res = await fetchAutenticado(`/citas/${citaId}/recetas`);
+      if (res.ok) {
+        const data = await res.json();
+        setRecetasPorCita((prev) => ({ ...prev, [citaId]: data }));
+      }
+    }
   }
-
-  const citasActivas = citas.filter((c) => c.estado !== 'cancelada');
 
   return (
     <section className="panel">
-      <h2>Mis citas agendadas</h2>
+      <h2>Mis citas</h2>
 
       {cargando && <p>Cargando…</p>}
 
       <ul className="citas-list">
-        {!cargando && citasActivas.length === 0 && <li>No tienes citas agendadas.</li>}
-        {citasActivas.map((cita) => (
-          <li key={cita._id} className="cita-item-wrapper">
+        {!cargando && citas.length === 0 && <li>Todavía no tienes citas agendadas.</li>}
+        {citas.map((cita) => (
+          <li key={cita._id} className={`cita-item-wrapper ${cita.estado === 'cancelada' ? 'cancelada' : ''}`}>
             <div className="cita-item">
               <div className="cita-info">
                 <strong>{formatearFecha(cita)}</strong>
-                <span>{cita.horario?.sucursal ?? '—'} · {cita.motivo} · {cita.estado}</span>
+                <span>
+                  {cita.horario?.sucursal ?? '—'} · Dr(a). {cita.horario?.medico?.nombre ?? 'Sin asignar'}
+                </span>
+
+                {editandoId === cita._id ? (
+                  <div className="edicion-inline">
+                    <input
+                      value={motivoEditado}
+                      onChange={(e) => setMotivoEditado(e.target.value)}
+                      disabled={guardando}
+                    />
+                    <button onClick={() => guardarMotivo(cita._id)} disabled={guardando}>
+                      {guardando ? 'Guardando…' : 'Guardar'}
+                    </button>
+                    <button onClick={cancelarEdicion} disabled={guardando}>
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <span>Motivo: {cita.motivo} · {cita.estado}</span>
+                )}
               </div>
-              <div className="cita-actions">
-                <button className="btn-cancelar" onClick={() => cancelarCita(cita._id)}>
-                  Cancelar
-                </button>
-                <button className="btn-modificar" onClick={() => modificarCita(cita)}>
-                  Modificar
-                </button>
-                <button className="btn-receta" onClick={() => toggleRecetas(cita._id)}>
-                  {citaAbierta === cita._id ? 'Cerrar' : 'Ver recetas'}
-                </button>
-              </div>
+
+              {cita.estado !== 'cancelada' && editandoId !== cita._id && (
+                <div className="cita-actions">
+                  <button className="btn-modificar" onClick={() => iniciarEdicion(cita)}>
+                    Modificar
+                  </button>
+                  <button className="btn-cancelar" onClick={() => cancelarCita(cita._id)}>
+                    Cancelar
+                  </button>
+                  <button className="btn-receta" onClick={() => toggleRecetas(cita._id)}>
+                    {citaAbierta === cita._id ? 'Ocultar recetas' : 'Ver recetas'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {citaAbierta === cita._id && (
               <div className="receta-panel">
-                <h4>Recetas emitidas por tu doctor en esta cita</h4>
+                <h4>Recetas de esta cita</h4>
                 <ul className="recetas-list">
-                  {(recetasPorCita[cita._id] ?? []).length === 0 && <li>Sin recetas emitidas todavía.</li>}
+                  {(recetasPorCita[cita._id] ?? []).length === 0 && <li>Sin recetas emitidas.</li>}
                   {(recetasPorCita[cita._id] ?? []).map((r) => (
                     <li key={r._id}>
                       {r.medicamento?.nombre} — {r.cantidad} unidades
                       {r.esControlado && <span className="med-receta"> Controlado</span>}
+                      {r.esControlado && <span> · Pedido: {r.pedidoEstado ?? 'sin surtir'}</span>}
                     </li>
                   ))}
                 </ul>
-                {(recetasPorCita[cita._id] ?? []).some((r) => r.esControlado) && (
-                  <p className="nota-receta">Ve a la pestaña "Mis recetas" para surtir los controlados.</p>
-                )}
               </div>
             )}
           </li>

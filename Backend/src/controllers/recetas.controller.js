@@ -3,125 +3,135 @@ const Cita = require('../models/Cita');
 const Medicamento = require('../models/Medicamento');
 const Pedido = require('../models/Pedido');
 
-// Reglas de negocio para medicamentos controlados.
-// Ahora que hay roles: solo el DOCTOR ASIGNADO al horario de la cita puede recetar.
-const LIMITE_CANTIDAD_CONTROLADO = 30; // unidades máximas por receta
-const DIAS_ESPERA_CONTROLADO = 30; // días de espera antes de poder re-recetar el mismo controlado
+const CANTIDAD_MAXIMA_CONTROLADO = 30;
+const DIAS_COOLDOWN_CONTROLADO = 15;
 
-async function esDoctorAsignado(cita, req) {
-  if (req.usuario.rol !== 'doctor') return false;
-  if (!cita.horario) return false;
-  return cita.horario.medico.toString() === req.usuario.id;
+async function esDoctorAsignado(citaId, doctorId) {
+  const cita = await Cita.findById(citaId).populate({ path: 'horario', populate: { path: 'medico' } });
+  if (!cita) return { ok: false, mensaje: 'Cita no encontrada.' };
+  if (String(cita.horario?.medico?._id) !== String(doctorId)) {
+    return { ok: false, mensaje: 'No eres el doctor asignado a esta cita.' };
+  }
+  return { ok: true, cita };
 }
 
 async function crearReceta(req, res) {
-  const { medicamentoId, cantidad } = req.body;
-  const citaId = req.params.id;
-
-  if (!medicamentoId || !cantidad || Number(cantidad) < 1) {
-    return res.status(400).json({ mensaje: 'Selecciona un medicamento y una cantidad válida' });
-  }
-
-  const cita = await Cita.findById(citaId).populate('horario');
-  if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
-
-  if (req.usuario.rol !== 'doctor') {
-    return res.status(403).json({ mensaje: 'Solo un doctor puede emitir recetas' });
-  }
-  if (!(await esDoctorAsignado(cita, req))) {
-    return res.status(403).json({ mensaje: 'Solo el doctor asignado a esta cita puede recetar sobre ella' });
-  }
-  if (cita.estado === 'cancelada') {
-    return res.status(400).json({ mensaje: 'No se puede emitir una receta sobre una cita cancelada' });
-  }
-  if (!cita.motivo || !cita.motivo.trim()) {
-    return res.status(400).json({ mensaje: 'La cita debe tener un motivo de consulta antes de recetar' });
-  }
-
-  const medicamento = await Medicamento.findById(medicamentoId);
-  if (!medicamento) return res.status(404).json({ mensaje: 'Medicamento no encontrado' });
-
-  const cantidadNum = Number(cantidad);
-
-  if (medicamento.esControlado) {
-    if (cantidadNum > LIMITE_CANTIDAD_CONTROLADO) {
-      return res.status(400).json({
-        mensaje: `Los medicamentos controlados no pueden recetarse en cantidades mayores a ${LIMITE_CANTIDAD_CONTROLADO} unidades por receta`,
-      });
+  try {
+    if (req.usuario.rol !== 'doctor') {
+      return res.status(403).json({ mensaje: 'Solo un doctor puede emitir recetas.' });
     }
 
-    const desde = new Date();
-    desde.setDate(desde.getDate() - DIAS_ESPERA_CONTROLADO);
+    const { medicamentoId, cantidad } = req.body;
+    const citaId = req.params.id;
 
-    const recetaReciente = await Receta.findOne({
-      paciente: cita.paciente,
-      medicamento: medicamento._id,
-      esControlado: true,
-      createdAt: { $gte: desde },
+    if (!medicamentoId || !cantidad || cantidad < 1) {
+      return res.status(400).json({ mensaje: 'Falta el medicamento o la cantidad es inválida.' });
+    }
+
+    const verificacion = await esDoctorAsignado(citaId, req.usuario.id);
+    if (!verificacion.ok) return res.status(403).json({ mensaje: verificacion.mensaje });
+
+    const medicamento = await Medicamento.findById(medicamentoId);
+    if (!medicamento) return res.status(404).json({ mensaje: 'Medicamento no encontrado.' });
+
+    if (medicamento.esControlado) {
+      if (cantidad > CANTIDAD_MAXIMA_CONTROLADO) {
+        return res.status(400).json({
+          mensaje: `No puedes recetar más de ${CANTIDAD_MAXIMA_CONTROLADO} unidades de un medicamento controlado.`,
+        });
+      }
+
+      const pacienteId = verificacion.cita.paciente;
+      const limiteFecha = new Date();
+      limiteFecha.setDate(limiteFecha.getDate() - DIAS_COOLDOWN_CONTROLADO);
+
+      const recetaReciente = await Receta.findOne({
+        paciente: pacienteId,
+        medicamento: medicamentoId,
+        esControlado: true,
+        createdAt: { $gte: limiteFecha },
+      });
+
+      if (recetaReciente) {
+        return res.status(400).json({
+          mensaje: `Este paciente ya recibió una receta de este medicamento en los últimos ${DIAS_COOLDOWN_CONTROLADO} días.`,
+        });
+      }
+    }
+
+    const receta = await Receta.create({
+      cita: citaId,
+      paciente: verificacion.cita.paciente,
+      emitidoPor: req.usuario.id,
+      medicamento: medicamentoId,
+      cantidad,
+      esControlado: medicamento.esControlado,
     });
 
-    if (recetaReciente) {
-      return res.status(409).json({
-        mensaje: `Ya se emitió una receta de ${medicamento.nombre} para este paciente en los últimos ${DIAS_ESPERA_CONTROLADO} días`,
-      });
-    }
+    const recetaPopulada = await receta.populate('medicamento');
+    res.status(201).json(recetaPopulada);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al emitir la receta.', error: error.message });
   }
-
-  // Descuento de stock atómico: la condición stock >= cantidad va en el filtro,
-  // así que si dos requests llegan casi al mismo tiempo, solo una gana la carrera.
-  const medicamentoActualizado = await Medicamento.findOneAndUpdate(
-    { _id: medicamento._id, stock: { $gte: cantidadNum } },
-    { $inc: { stock: -cantidadNum } },
-    { new: true }
-  );
-
-  if (!medicamentoActualizado) {
-    return res.status(409).json({ mensaje: 'No hay stock suficiente de este medicamento' });
-  }
-
-  const receta = await Receta.create({
-    cita: cita._id,
-    paciente: cita.paciente,
-    emitidoPor: req.usuario.id,
-    medicamento: medicamento._id,
-    cantidad: cantidadNum,
-    esControlado: medicamento.esControlado,
-  });
-
-  const recetaConMedicamento = await receta.populate('medicamento');
-  res.status(201).json(recetaConMedicamento);
 }
 
 async function getRecetasDeCita(req, res) {
-  const cita = await Cita.findById(req.params.id).populate('horario');
-  if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
+  try {
+    const recetas = await Receta.find({ cita: req.params.id }).populate('medicamento').sort({ createdAt: -1 });
 
-  const esPaciente = cita.paciente.toString() === req.usuario.id;
-  const esDoctor = await esDoctorAsignado(cita, req);
+    const recetasConEstado = await Promise.all(
+      recetas.map(async (r) => {
+        const objeto = r.toObject();
+        if (r.esControlado) {
+          const pedido = await Pedido.findOne({ receta: r._id });
+          objeto.pedidoEstado = pedido ? pedido.estado : null;
+        }
+        return objeto;
+      })
+    );
 
-  if (!esPaciente && !esDoctor) {
-    return res.status(403).json({ mensaje: 'No tienes acceso a las recetas de esta cita' });
+    res.json(recetasConEstado);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener las recetas de la cita.', error: error.message });
   }
-
-  const recetas = await Receta.find({ cita: cita._id }).populate('medicamento').sort({ createdAt: -1 });
-  res.json(recetas);
 }
 
-// Todas las recetas del paciente autenticado, con una bandera "surtida" que
-// dice si ya se generó un Pedido a partir de ella (para saber cuáles siguen vigentes).
 async function getMisRecetas(req, res) {
-  const recetas = await Receta.find({ paciente: req.usuario.id }).populate('medicamento').sort({ createdAt: -1 });
+  try {
+    const recetas = await Receta.find({ paciente: req.usuario.id }).populate('medicamento').sort({ createdAt: -1 });
 
-  const idsRecetas = recetas.map((r) => r._id);
-  const pedidosExistentes = await Pedido.find({ receta: { $in: idsRecetas } }).select('receta');
-  const idsConPedido = new Set(pedidosExistentes.map((p) => p.receta.toString()));
+    const recetasConEstado = await Promise.all(
+      recetas.map(async (r) => {
+        const objeto = r.toObject();
+        const pedido = await Pedido.findOne({ receta: r._id });
+        objeto.surtida = !!pedido;
+        return objeto;
+      })
+    );
 
-  const recetasConEstado = recetas.map((r) => ({
-    ...r.toObject(),
-    surtida: idsConPedido.has(r._id.toString()),
-  }));
-
-  res.json(recetasConEstado);
+    res.json(recetasConEstado);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener tus recetas.', error: error.message });
+  }
 }
 
-module.exports = { crearReceta, getRecetasDeCita, getMisRecetas };
+async function getHistorialPaciente(req, res) {
+  try {
+    const { pacienteId } = req.params;
+
+    const recetas = await Receta.find({ paciente: pacienteId, emitidoPor: req.usuario.id })
+      .populate('medicamento')
+      .sort({ createdAt: -1 });
+
+    res.json(recetas);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener el historial del paciente.', error: error.message });
+  }
+}
+
+module.exports = {
+  crearReceta,
+  getRecetasDeCita,
+  getMisRecetas,
+  getHistorialPaciente,
+};

@@ -129,3 +129,10 @@ body {
 .dia-btn.activo { border-color: #2f6fed; background: #eaf1ff; color: #2f6fed; }
 .dia-nombre { font-size: 12px; text-transform: capitalize; }
 .dia-numero { font-size: 16px; font-weight: 600; }
+.reportes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+.reporte-tarjeta { border: 1px solid #eaecef; border-radius: 10px; padding: 16px; background: #fafbfc; }
+.reporte-tarjeta h4 { margin: 0 0 10px; font-size: 14px; color: #4b5563; }
+.reporte-lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.reporte-lista li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.reporte-barra-fondo { flex: 1; height: 8px; background: #eaecef; border-radius: 4px; overflow: hidden; margin: 0 8px; }
+.reporte-barra { height: 100%; background: #2f6fed; border-radius: 4px; }

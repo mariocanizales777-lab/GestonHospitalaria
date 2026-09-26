@@ -9,7 +9,7 @@ const usuariosRoutes = require('./routes/usuarios.routes');
 const pedidosRoutes = require('./routes/pedidos.routes');
 const recetasRoutes = require('./routes/recetas.routes');
 const devRoutes = require('./routes/dev.routes');
-
+const reportesRoutes = require('./routes/reportes.routes');
 const app = express();
 
 app.use(cors());
@@ -22,7 +22,7 @@ app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/recetas', recetasRoutes);
 app.use('/api/dev', devRoutes);
-
+app.use('/api/reportes', reportesRoutes);
 connectDB();
 
 const PORT = process.env.PORT || 4000;
