@@ -1,53 +1,67 @@
-export const API_URL = 'http://localhost:4000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
-export function getToken() {
-  return localStorage.getItem('token');
-}
+const STORAGE_TOKEN_KEY = 'fc_token';
+const STORAGE_USUARIO_KEY = 'fc_usuario';
+
+export { API_URL };
 
 export function getUsuarioActual() {
-  const raw = localStorage.getItem('usuario');
-  return raw ? JSON.parse(raw) : null;
+  const raw = localStorage.getItem(STORAGE_USUARIO_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
-function guardarSesion(data) {
-  localStorage.setItem('token', data.token);
-  localStorage.setItem('usuario', JSON.stringify(data.usuario));
+function guardarSesion(token, usuario) {
+  localStorage.setItem(STORAGE_TOKEN_KEY, token);
+  localStorage.setItem(STORAGE_USUARIO_KEY, JSON.stringify(usuario));
 }
 
-// "Actuar como": sin login real, pide un token para el usuario demo del rol elegido.
 export async function entrarComo(rol) {
   const res = await fetch(`${API_URL}/dev/token?rol=${rol}`);
   if (!res.ok) throw new Error('No se pudo iniciar sesión con ese rol');
   const data = await res.json();
-  guardarSesion(data);
+  guardarSesion(data.token, data.usuario);
   return data.usuario;
 }
 
 export async function asegurarToken() {
+  const token = localStorage.getItem(STORAGE_TOKEN_KEY);
   const usuario = getUsuarioActual();
-  if (getToken() && usuario) return usuario;
-  return entrarComo('paciente');
+  if (token && usuario) return token;
+  await entrarComo('paciente');
+  return localStorage.getItem(STORAGE_TOKEN_KEY);
 }
 
-// Fetch autenticado centralizado: si el token guardado ya no es válido
-// (expiró, o el backend se reinició con otro JWT_SECRET), pide uno nuevo
-// automáticamente para el mismo rol y reintenta la petición una sola vez.
 export async function fetchAutenticado(path, options = {}) {
-  const hacerRequest = (token) =>
+  let token = localStorage.getItem(STORAGE_TOKEN_KEY);
+  if (!token) {
+    await asegurarToken();
+    token = localStorage.getItem(STORAGE_TOKEN_KEY);
+  }
+
+  const hacerFetch = (tok) =>
     fetch(`${API_URL}${path}`, {
       ...options,
       headers: {
         ...(options.headers || {}),
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${tok}`,
       },
     });
 
-  let res = await hacerRequest(getToken());
+  let res = await hacerFetch(token);
 
   if (res.status === 401) {
-    const rolActual = getUsuarioActual()?.rol || 'paciente';
-    await entrarComo(rolActual);
-    res = await hacerRequest(getToken());
+    const usuarioActual = getUsuarioActual();
+    const rol = usuarioActual?.rol || 'paciente';
+    await entrarComo(rol);
+    const tokenNuevo = localStorage.getItem(STORAGE_TOKEN_KEY);
+    if (tokenNuevo) {
+      res = await hacerFetch(tokenNuevo);
+    }
   }
 
   return res;
