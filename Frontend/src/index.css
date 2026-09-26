@@ -136,3 +136,23 @@ body {
 .reporte-lista li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .reporte-barra-fondo { flex: 1; height: 8px; background: #eaecef; border-radius: 4px; overflow: hidden; margin: 0 8px; }
 .reporte-barra { height: 100%; background: #2f6fed; border-radius: 4px; }
+
+.user-badge button { padding: 6px 12px; border: 1px solid #dcdfe4; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; color: #4b5563; }
+.user-badge button:hover { background: #f7f8fa; }
+.login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f7f8fa; }
+.login-form { background: #fff; border-radius: 12px; padding: 32px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 14px; }
+.login-form h2 { margin: 0 0 6px; text-align: center; }
+.login-form label { display: flex; flex-direction: column; font-size: 13px; color: #4b5563; gap: 4px; }
+.login-form input { padding: 10px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.login-form button { padding: 10px; border: none; border-radius: 6px; background: #2f6fed; color: #fff; cursor: pointer; font-size: 14px; }
+.login-form button[disabled] { background: #a9c1f5; cursor: not-allowed; }
+
+.recordatorio-banner { background: #fff7e6; border: 1px solid #f5d999; border-radius: 8px; padding: 12px 16px; margin: 16px 32px 0; font-size: 13px; color: #b7791f; display: flex; flex-direction: column; gap: 4px; }
+
+.edicion-inline { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.edicion-inline input { flex: 1; padding: 6px 8px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.edicion-inline button { padding: 6px 12px; border: 1px solid #dcdfe4; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; }
+
+.filtros-barra { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
+.filtros-barra input { flex: 1; min-width: 200px; padding: 8px 10px; border: 1px solid #dcdfe4; border-radius: 6px; }
+.filtros-barra select { padding: 8px 10px; border: 1px solid #dcdfe4; border-radius: 6px; background: #fff; }
