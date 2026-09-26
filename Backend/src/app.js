@@ -10,6 +10,7 @@ const pedidosRoutes = require('./routes/pedidos.routes');
 const recetasRoutes = require('./routes/recetas.routes');
 const devRoutes = require('./routes/dev.routes');
 const reportesRoutes = require('./routes/reportes.routes');
+const authRoutes = require('./routes/auth.routes');
 const app = express();
 
 app.use(cors());
@@ -23,7 +24,6 @@ app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/recetas', recetasRoutes);
 app.use('/api/dev', devRoutes);
 app.use('/api/reportes', reportesRoutes);
-connectDB();
+app.use('/api/auth', authRoutes);
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+module.exports = app;
