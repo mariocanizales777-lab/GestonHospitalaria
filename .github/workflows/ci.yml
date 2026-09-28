@@ -50,12 +50,15 @@ jobs:
       - name: Escaneo baseline OWASP ZAP (via Docker)
         run: |
           mkdir -p zap-report
+          chmod -R 777 zap-report
           docker run --rm -v $(pwd)/zap-report:/zap/wrk/:rw \
             -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t ${{ secrets.FRONTEND_URL }} \
             -r report_html.html \
             -x report_xml.xml \
             -a || true
+          echo "--- Contenido de zap-report ---"
+          ls -la zap-report
       - name: Guardar reporte de ZAP
         uses: actions/upload-artifact@v4
         with:
