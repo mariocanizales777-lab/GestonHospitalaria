@@ -46,18 +46,18 @@ jobs:
     needs: deploy
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
     steps:
-      - name: Escaneo baseline OWASP ZAP
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: ${{ secrets.FRONTEND_URL }}
-          fail_action: false
-          cmd_options: '-a'
+      - name: Escaneo baseline OWASP ZAP (via Docker)
+        run: |
+          mkdir -p zap-report
+          docker run --rm -v $(pwd)/zap-report:/zap/wrk/:rw \
+            -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t ${{ secrets.FRONTEND_URL }} \
+            -r report_html.html \
+            -x report_xml.xml \
+            -a || true
       - name: Guardar reporte de ZAP
         uses: actions/upload-artifact@v4
         with:
           name: reporte-owasp-zap
-          path: report_html.html
+          path: zap-report/
