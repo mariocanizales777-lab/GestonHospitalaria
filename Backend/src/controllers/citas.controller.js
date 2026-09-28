@@ -52,6 +52,11 @@ async function actualizarCita(req, res) {
 
   const cita = await Cita.findById(req.params.id);
   if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
+
+  if (cita.paciente.toString() !== req.usuario.id) {
+    return res.status(403).json({ mensaje: 'No puedes modificar la cita de otro paciente' });
+  }
+
   if (cita.estado === 'cancelada') {
     return res.status(400).json({ mensaje: 'No se puede modificar una cita cancelada' });
   }
@@ -64,6 +69,10 @@ async function actualizarCita(req, res) {
 async function cancelarCita(req, res) {
   const cita = await Cita.findById(req.params.id);
   if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
+
+  if (cita.paciente.toString() !== req.usuario.id) {
+    return res.status(403).json({ mensaje: 'No puedes cancelar la cita de otro paciente' });
+  }
 
   cita.estado = 'cancelada';
   await cita.save();
