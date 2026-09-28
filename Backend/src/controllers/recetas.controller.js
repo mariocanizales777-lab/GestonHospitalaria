@@ -68,7 +68,11 @@ async function crearReceta(req, res) {
       esControlado: medicamento.esControlado,
     });
 
-    const recetaPopulada = await receta.populate('medicamento');
+    const recetaPopulada = await Receta.findById(receta._id)
+      .populate('medicamento')
+      .populate({ path: 'emitidoPor', select: 'nombre' })
+      .populate({ path: 'paciente', select: 'nombre' });
+
     res.status(201).json(recetaPopulada);
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al emitir la receta.', error: error.message });
@@ -77,7 +81,11 @@ async function crearReceta(req, res) {
 
 async function getRecetasDeCita(req, res) {
   try {
-    const recetas = await Receta.find({ cita: req.params.id }).populate('medicamento').sort({ createdAt: -1 });
+    const recetas = await Receta.find({ cita: req.params.id })
+      .populate('medicamento')
+      .populate({ path: 'emitidoPor', select: 'nombre' })
+      .populate({ path: 'paciente', select: 'nombre' })
+      .sort({ createdAt: -1 });
 
     const recetasConEstado = await Promise.all(
       recetas.map(async (r) => {
@@ -85,6 +93,7 @@ async function getRecetasDeCita(req, res) {
         if (r.esControlado) {
           const pedido = await Pedido.findOne({ receta: r._id });
           objeto.pedidoEstado = pedido ? pedido.estado : null;
+          objeto.surtida = !!pedido;
         }
         return objeto;
       })
@@ -98,7 +107,10 @@ async function getRecetasDeCita(req, res) {
 
 async function getMisRecetas(req, res) {
   try {
-    const recetas = await Receta.find({ paciente: req.usuario.id }).populate('medicamento').sort({ createdAt: -1 });
+    const recetas = await Receta.find({ paciente: req.usuario.id })
+      .populate('medicamento')
+      .populate({ path: 'emitidoPor', select: 'nombre' })
+      .sort({ createdAt: -1 });
 
     const recetasConEstado = await Promise.all(
       recetas.map(async (r) => {
@@ -121,6 +133,7 @@ async function getHistorialPaciente(req, res) {
 
     const recetas = await Receta.find({ paciente: pacienteId, emitidoPor: req.usuario.id })
       .populate('medicamento')
+      .populate({ path: 'emitidoPor', select: 'nombre' })
       .sort({ createdAt: -1 });
 
     res.json(recetas);

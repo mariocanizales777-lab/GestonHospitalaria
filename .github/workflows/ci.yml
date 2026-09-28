@@ -1,0 +1,60 @@
+name: CI/CD FarmaCitas
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm test
+        env:
+          JWT_SECRET: test_secret
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build
+  deploy:
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Backend a Render
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      - name: Deploy Frontend a Vercel
+        run: curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
+      - name: Esperar a que el despliegue esté listo
+        run: sleep 60
+  owasp-zap:
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Escaneo baseline OWASP ZAP
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: ${{ secrets.FRONTEND_URL }}
+          fail_action: false
+          cmd_options: '-a'
+      - name: Guardar reporte de ZAP
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-owasp-zap
+          path: report_html.html
