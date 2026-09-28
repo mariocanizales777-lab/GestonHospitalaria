@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAutenticado } from '../api';
 import { useToast } from './Toast';
+import RecetaCard from './RecetaCard';
 
 export default function MisRecetas() {
   const toast = useToast();
@@ -38,35 +39,30 @@ export default function MisRecetas() {
     }
   }
 
-  const recetasControladas = recetas.filter((r) => r.esControlado);
-
   return (
     <section className="panel">
       <h2>Mis recetas</h2>
-      <p>Recetas de medicamentos controlados emitidas por tu doctor.</p>
+      <p>Aquí puedes ver el detalle de cada receta que tu doctor te ha emitido.</p>
 
       {cargando && <p>Cargando…</p>}
 
-      <ul className="citas-list">
-        {!cargando && recetasControladas.length === 0 && <li>No tienes recetas de medicamentos controlados.</li>}
-        {recetasControladas.map((r) => (
-          <li key={r._id} className="cita-item-wrapper">
-            <div className="cita-item">
-              <div className="cita-info">
-                <strong>{r.medicamento?.nombre}</strong>
-                <span>{r.cantidad} unidades · {r.surtida ? 'Ya surtida' : 'Vigente'}</span>
-              </div>
-              <div className="cita-actions">
-                {!r.surtida && (
-                  <button className="btn-receta" onClick={() => surtir(r._id)}>
-                    Surtir
-                  </button>
-                )}
-              </div>
-            </div>
-          </li>
+      <div className="recetas-grid">
+        {!cargando && recetas.length === 0 && <p>No tienes recetas emitidas todavía.</p>}
+        {recetas.map((r) => (
+          <RecetaCard
+            key={r._id}
+            receta={r}
+            mostrarDoctor
+            accion={
+              r.esControlado && !r.surtida ? (
+                <button className="btn-receta" onClick={() => surtir(r._id)}>
+                  Surtir receta
+                </button>
+              ) : null
+            }
+          />
         ))}
-      </ul>
+      </div>
 
       <h3 style={{ marginTop: 24 }}>Mis pedidos</h3>
       <ul className="citas-list">

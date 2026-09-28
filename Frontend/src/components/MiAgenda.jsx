@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { API_URL, fetchAutenticado } from '../api';
 import { useToast } from './Toast';
+import RecetaCard from './RecetaCard';
 
 function formatearFecha(cita) {
   if (!cita.horario) return 'Horario no disponible';
@@ -110,7 +111,9 @@ export default function MiAgenda() {
             <div className="cita-item">
               <div className="cita-info">
                 <strong>{formatearFecha(cita)}</strong>
-                <span>{cita.horario?.sucursal ?? '—'} · {cita.motivo} · {cita.estado}</span>
+                <span>
+                  Paciente: {cita.paciente?.nombre ?? '—'} · {cita.horario?.sucursal ?? '—'} · {cita.motivo} · {cita.estado}
+                </span>
               </div>
               <div className="cita-actions">
                 <button className="btn-receta" onClick={() => toggleRecetar(cita._id)}>
@@ -122,15 +125,13 @@ export default function MiAgenda() {
             {citaAbierta === cita._id && (
               <div className="receta-panel">
                 <h4>Recetas de esta cita</h4>
-                <ul className="recetas-list">
-                  {(recetasPorCita[cita._id] ?? []).length === 0 && <li>Sin recetas emitidas.</li>}
+
+                <div className="recetas-grid">
+                  {(recetasPorCita[cita._id] ?? []).length === 0 && <p>Sin recetas emitidas.</p>}
                   {(recetasPorCita[cita._id] ?? []).map((r) => (
-                    <li key={r._id}>
-                      {r.medicamento?.nombre} — {r.cantidad} unidades
-                      {r.esControlado && <span className="med-receta"> Controlado</span>}
-                    </li>
+                    <RecetaCard key={r._id} receta={r} />
                   ))}
-                </ul>
+                </div>
 
                 <div className="receta-form">
                   <select value={medicamentoId} onChange={(e) => setMedicamentoId(e.target.value)}>

@@ -156,3 +156,94 @@ body {
 .filtros-barra { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
 .filtros-barra input { flex: 1; min-width: 200px; padding: 8px 10px; border: 1px solid #dcdfe4; border-radius: 6px; }
 .filtros-barra select { padding: 8px 10px; border: 1px solid #dcdfe4; border-radius: 6px; background: #fff; }
+
+.recetas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin: 12px 0 20px;
+}
+
+.receta-card {
+  background: #fff;
+  border: 1px solid #d8dee6;
+  border-left: 6px solid #2f7d5f;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.receta-card-controlada {
+  border-left-color: #b23b3b;
+}
+
+.receta-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #d8dee6;
+}
+
+.receta-card-titulo {
+  font-weight: 700;
+  color: #2f7d5f;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+.receta-card-folio {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.receta-card-medicamento {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.receta-card-medicamento strong {
+  font-size: 1.05rem;
+}
+
+.receta-card-detalles p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.receta-card-badges {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.receta-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.receta-badge-controlado {
+  background: #fde2e2;
+  color: #b23b3b;
+}
+
+.receta-badge-vigente {
+  background: #e2f4ea;
+  color: #2f7d5f;
+}
+
+.receta-badge-surtida {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.receta-card-accion {
+  margin-top: 10px;
+}
