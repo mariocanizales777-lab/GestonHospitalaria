@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { API_URL } from '../api';
+import { API_URL, guardarSesion } from '../api';
 import { useToast } from './Toast';
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, onIrARegistro }) {
   const toast = useToast();
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
@@ -25,8 +25,7 @@ export default function Login({ onLogin }) {
     setEnviando(false);
 
     if (res.ok) {
-      localStorage.setItem('fc_token', data.token);
-      localStorage.setItem('fc_usuario', JSON.stringify(data.usuario));
+      guardarSesion(data.token, data.usuario);
       onLogin(data.usuario);
     } else {
       toast.error(data.mensaje || 'No se pudo iniciar sesión.');
@@ -48,7 +47,9 @@ export default function Login({ onLogin }) {
         <button type="submit" disabled={enviando}>
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
-        <p className="campo-ayuda">Demo: paciente/1234 · doctor/1234 · admin/1234</p>
+        <button type="button" className="link-btn" onClick={onIrARegistro}>
+          ¿No tienes cuenta? Regístrate como paciente
+        </button>
       </form>
     </div>
   );

@@ -1,20 +1,24 @@
 import { useState } from 'react';
-import { getUsuarioActual } from './api';
+import { getUsuarioActual, cerrarSesionLocal } from './api';
 import Login from './components/Login';
+import Registro from './components/Registro';
 import PacienteHome from './components/PacienteHome';
 import DoctorHome from './components/DoctorHome';
 import AdminHome from './components/AdminHome';
 
 export default function App() {
   const [usuarioSesion, setUsuarioSesion] = useState(getUsuarioActual());
+  const [vista, setVista] = useState('login'); // 'login' | 'registro'
 
   if (!usuarioSesion) {
-    return <Login onLogin={setUsuarioSesion} />;
+    if (vista === 'registro') {
+      return <Registro onRegistro={setUsuarioSesion} onIrALogin={() => setVista('login')} />;
+    }
+    return <Login onLogin={setUsuarioSesion} onIrARegistro={() => setVista('registro')} />;
   }
 
   function cerrarSesion() {
-    localStorage.removeItem('fc_token');
-    localStorage.removeItem('fc_usuario');
+    cerrarSesionLocal();
     setUsuarioSesion(null);
   }
 

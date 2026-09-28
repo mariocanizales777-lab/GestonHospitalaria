@@ -15,53 +15,34 @@ export function getUsuarioActual() {
   }
 }
 
-function guardarSesion(token, usuario) {
+export function guardarSesion(token, usuario) {
   localStorage.setItem(STORAGE_TOKEN_KEY, token);
   localStorage.setItem(STORAGE_USUARIO_KEY, JSON.stringify(usuario));
 }
 
-export async function entrarComo(rol) {
-  const res = await fetch(`${API_URL}/dev/token?rol=${rol}`);
-  if (!res.ok) throw new Error('No se pudo iniciar sesión con ese rol');
-  const data = await res.json();
-  guardarSesion(data.token, data.usuario);
-  return data.usuario;
+export function cerrarSesionLocal() {
+  localStorage.removeItem(STORAGE_TOKEN_KEY);
+  localStorage.removeItem(STORAGE_USUARIO_KEY);
 }
 
-export async function asegurarToken() {
-  const token = localStorage.getItem(STORAGE_TOKEN_KEY);
-  const usuario = getUsuarioActual();
-  if (token && usuario) return token;
-  await entrarComo('paciente');
-  return localStorage.getItem(STORAGE_TOKEN_KEY);
-}
-
+// Hace un fetch autenticado con el token guardado. Si el token ya no es
+// válido (expiró o el backend lo rechaza), cierra la sesión local y recarga
+// la página para que la persona vuelva a la pantalla de inicio de sesión.
+// Ya no existe un "modo demo" que consiga un token nuevo sin contraseña.
 export async function fetchAutenticado(path, options = {}) {
-  let token = localStorage.getItem(STORAGE_TOKEN_KEY);
-  if (!token) {
-    await asegurarToken();
-    token = localStorage.getItem(STORAGE_TOKEN_KEY);
-  }
+  const token = localStorage.getItem(STORAGE_TOKEN_KEY);
 
-  const hacerFetch = (tok) =>
-    fetch(`${API_URL}${path}`, {
-      ...options,
-      headers: {
-        ...(options.headers || {}),
-        Authorization: `Bearer ${tok}`,
-      },
-    });
-
-  let res = await hacerFetch(token);
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (res.status === 401) {
-    const usuarioActual = getUsuarioActual();
-    const rol = usuarioActual?.rol || 'paciente';
-    await entrarComo(rol);
-    const tokenNuevo = localStorage.getItem(STORAGE_TOKEN_KEY);
-    if (tokenNuevo) {
-      res = await hacerFetch(tokenNuevo);
-    }
+    cerrarSesionLocal();
+    window.location.reload();
   }
 
   return res;
