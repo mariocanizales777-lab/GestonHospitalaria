@@ -1,0 +1,36 @@
+Reporte de cobertura de pruebas unitarias — GestonHospitalaria (Backend)
+Framework: Jest (reporte Istanbul: html, lcov, clover)
+Generado: 28/09/2026
+Reporte HTML completo: Backend/coverage/lcov-report/index.html
+
+--------------------------------------------------------------------------------
+Archivo                    % Stmts   % Branch   % Funcs   % Lines   Uncovered
+--------------------------------------------------------------------------------
+citas.controller.js         89.36%    81.81%    100%      93.02%    (42/47 stmts, 40/43 lines)
+pedidos.controller.js       96.36%    93.54%    100%      98.00%    (53/55 stmts, 49/50 lines)
+recetas.controller.js       89.06%    76.00%    100%      91.80%    (57/64 stmts, 56/61 lines)
+--------------------------------------------------------------------------------
+TOTAL                       91.56%    84.61%    100%      94.15%    (152/166 stmts, 18/18 funcs, 145/154 lines)
+--------------------------------------------------------------------------------
+
+Meta del proyecto: >= 80% de cobertura de líneas.
+Resultado: 94.15% -- CUMPLE (supera la meta en las 4 métricas).
+
+Interpretación:
+- El 100% de funciones indica que cada función de los controladores probados
+  se ejecuta al menos una vez durante las pruebas.
+- La cobertura de ramas (84.61%) es la métrica más baja porque algunos caminos
+  de error todavía no se prueban, en particular en recetas.controller.js (76%).
+
+Limitación conocida:
+- Este reporte cubre únicamente los controladores de citas, pedidos y recetas
+  (donde vive la lógica de negocio con más reglas). Los módulos de
+  autenticación (auth.controller.js), usuarios, horarios y medicamentos se
+  validaron mediante pruebas de API en Postman (ver docs/evidencias/postman/
+  y el informe final, sección 3.2), pero aún no cuentan con pruebas unitarias
+  automatizadas. Ampliar la cobertura a estos módulos es la primera acción del
+  plan de mejora continua de corto plazo (ver Informe_Cierre_Proyecto.pdf,
+  sección 5.3).
+
+Ver también: reportes/unit-tests/cobertura-por-archivo.png (captura del
+reporte HTML de Jest/Istanbul).
