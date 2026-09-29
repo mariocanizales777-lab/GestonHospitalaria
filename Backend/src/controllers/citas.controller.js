@@ -1,5 +1,10 @@
+const mongoose = require('mongoose');
 const Cita = require('../models/Cita');
 const Horario = require('../models/Horario');
+
+function esIdValido(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
 
 async function reservarCita(req, res) {
   const { horarioId, motivo } = req.body;
@@ -7,6 +12,10 @@ async function reservarCita(req, res) {
 
   if (!motivo || !motivo.trim()) {
     return res.status(400).json({ mensaje: 'El motivo de la consulta es obligatorio' });
+  }
+
+  if (!horarioId || !esIdValido(horarioId)) {
+    return res.status(400).json({ mensaje: 'Selecciona un horario válido' });
   }
 
   const horario = await Horario.findById(horarioId);
@@ -50,6 +59,10 @@ async function actualizarCita(req, res) {
     return res.status(400).json({ mensaje: 'El motivo no puede quedar vacío' });
   }
 
+  if (!esIdValido(req.params.id)) {
+    return res.status(400).json({ mensaje: 'Id de cita inválido' });
+  }
+
   const cita = await Cita.findById(req.params.id);
   if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
 
@@ -67,6 +80,10 @@ async function actualizarCita(req, res) {
 }
 
 async function cancelarCita(req, res) {
+  if (!esIdValido(req.params.id)) {
+    return res.status(400).json({ mensaje: 'Id de cita inválido' });
+  }
+
   const cita = await Cita.findById(req.params.id);
   if (!cita) return res.status(404).json({ mensaje: 'Cita no encontrada' });
 
